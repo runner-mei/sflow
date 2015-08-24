@@ -7,8 +7,7 @@ import (
 )
 
 var (
-	ErrInvalidSliceLength = errors.New("sflow: invalid slice length")
-	ErrInvalidFieldType   = errors.New("sflow: field type")
+	ErrInvalidFieldType = errors.New("sflow: field type")
 )
 
 // readFields reads big-endian encoded numbers from b into

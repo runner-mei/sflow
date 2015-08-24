@@ -1,7 +1,7 @@
 package sflow
 
 import (
-	"bytes"
+	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -11,10 +11,12 @@ func TestDecodeEncodeAndDecodeCounterSample(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	bs, err := ioutil.ReadAll(f)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	d := NewDecoder(f)
-
-	dgram, err := d.Decode()
+	next, dgram, err := DecodeDatagram(bs)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -23,48 +25,58 @@ func TestDecodeEncodeAndDecodeCounterSample(t *testing.T) {
 		t.Errorf("Expected datagram version %v, got %v", 5, dgram.Version)
 	}
 
-	if int(dgram.NumSamples) != len(dgram.Samples) {
-		t.Fatalf("expected NumSamples to be %d, but len(Samples) is %d", dgram.NumSamples, len(dgram.Samples))
-	}
+	//if int(dgram.NumSamples) != len(dgram.Samples) {
+	//	t.Fatalf("expected NumSamples to be %d, but len(Samples) is %d", dgram.NumSamples, len(dgram.Samples))
+	//}
 
-	if len(dgram.Samples) != 1 {
+	if dgram.NumSamples != 1 {
 		t.Fatalf("expected 1 sample, got %d", len(dgram.Samples))
 	}
 
-	sample, ok := dgram.Samples[0].(*CounterSample)
-	if !ok {
-		t.Fatalf("expected a CounterSample, got %T", dgram.Samples[0])
-	}
-
-	buf := &bytes.Buffer{}
-
-	err = sample.encode(buf)
+	next, s, err := DecodeSample(next)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	sample, ok := s.(*CounterSample)
+	if !ok {
+		t.Fatalf("expected a CounterSample, got %T", s)
+	}
+
+	// buf := &bytes.Buffer{}
+
+	// err = sample.encode(buf)
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
 
 	// We need to skip the first 8 bytes. That's the header.
-	var skip [8]byte
-	buf.Read(skip[:])
+	//var skip [8]byte
+	//buf.Read(skip[:])
 
 	// bytes.Buffer is not an io.ReadSeeker. bytes.Reader is.
-	decodedSample, err := decodeCounterSample(bytes.NewReader(buf.Bytes()))
+	// decodedSample, err := decodeCounterSample(bytes.NewReader(buf.Bytes()))
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+
+	// sample, ok = decodedSample.(*CounterSample)
+	// if !ok {
+	// 	t.Fatalf("expected a CounterSample, got %T", decodedSample)
+	// }
+
+	if sample.NumRecords != 2 {
+		t.Fatalf("expected 2 records, got %d", sample.NumRecords)
+	}
+
+	next, record, err := decodeCounterRecord(next)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	sample, ok = decodedSample.(*CounterSample)
+	ethCounters, ok := record.(*EthernetCounters)
 	if !ok {
-		t.Fatalf("expected a CounterSample, got %T", decodedSample)
-	}
-
-	if len(sample.Records) != 2 {
-		t.Fatalf("expected 2 records, got %d", len(sample.Records))
-	}
-
-	ethCounters, ok := sample.Records[0].(EthernetCounters)
-	if !ok {
-		t.Fatalf("expected a EthernetCounters record, got %T", sample.Records[0])
+		t.Fatalf("expected a EthernetCounters record, got %T", record)
 	}
 
 	expectedEthCountersRec := EthernetCounters{}
@@ -72,9 +84,14 @@ func TestDecodeEncodeAndDecodeCounterSample(t *testing.T) {
 		t.Errorf("expected\n%#v, got\n%#v", expectedEthCountersRec, ethCounters)
 	}
 
-	genericInterfaceCounters, ok := sample.Records[1].(GenericInterfaceCounters)
+	next, record, err = decodeCounterRecord(next)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	genericInterfaceCounters, ok := record.(GenericInterfaceCounters)
 	if !ok {
-		t.Fatalf("expected a GenericInterfaceCounters record, got %T", sample.Records[1])
+		t.Fatalf("expected a GenericInterfaceCounters record, got %T", record)
 	}
 
 	expectedGenericInterfaceCounters := GenericInterfaceCounters{

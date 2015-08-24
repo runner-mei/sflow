@@ -3,85 +3,52 @@ package sflow
 import (
 	"encoding/binary"
 	"errors"
-	"io"
 )
 
+var ErrInvalidSliceLength = errors.New("sflow: invalid slice length")
+var ErrUnsupportedIpVersion = errors.New("sflow: unsupported datagram version")
 var ErrUnsupportedDatagramVersion = errors.New("sflow: unsupported datagram version")
 
-type Decoder struct {
-	reader io.ReadSeeker
-}
-
-func NewDecoder(r io.ReadSeeker) *Decoder {
-	return &Decoder{
-		reader: r,
+func DecodeDatagram(bs []byte) ([]byte, *Datagram, error) {
+	if len(bs) < 28 {
+		return nil, nil, ErrInvalidSliceLength
 	}
-}
 
-func (d *Decoder) Use(r io.ReadSeeker) {
-	d.reader = r
-}
-
-func (d *Decoder) Decode() (*Datagram, error) {
 	// Decode headers first
 	dgram := &Datagram{}
-	var err error
 
-	err = binary.Read(d.reader, binary.BigEndian, &dgram.Version)
-	if err != nil {
-		return nil, err
-	}
+	dgram.Version = binary.BigEndian.Uint32(bs)
 
-	if dgram.Version != 5 {
-		return nil, ErrUnsupportedDatagramVersion
-	}
+	//if dgram.Version != 5 {
+	//	return nil, ErrUnsupportedDatagramVersion
+	//}
+	dgram.IpVersion = binary.BigEndian.Uint32(bs[4:])
 
-	err = binary.Read(d.reader, binary.BigEndian, &dgram.IpVersion)
-	if err != nil {
-		return nil, err
-	}
+	//err = binary.Read(d.reader, binary.BigEndian, &)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	ipLen := 4
-	if dgram.IpVersion == 2 {
+	switch dgram.IpVersion {
+	case 1: // IP_V4
+		ipLen = 4
+	case 2: // IP_V6
 		ipLen = 16
-	}
-
-	ipBuf := make([]byte, ipLen)
-	_, err = d.reader.Read(ipBuf)
-	if err != nil {
-		return nil, err
-	}
-
-	dgram.IpAddress = ipBuf
-
-	err = binary.Read(d.reader, binary.BigEndian, &dgram.SubAgentId)
-	if err != nil {
-		return nil, err
-	}
-
-	err = binary.Read(d.reader, binary.BigEndian, &dgram.SequenceNumber)
-	if err != nil {
-		return nil, err
-	}
-
-	err = binary.Read(d.reader, binary.BigEndian, &dgram.Uptime)
-	if err != nil {
-		return nil, err
-	}
-
-	err = binary.Read(d.reader, binary.BigEndian, &dgram.NumSamples)
-	if err != nil {
-		return nil, err
-	}
-
-	for i := dgram.NumSamples; i > 0; i-- {
-		sample, err := decodeSample(d.reader)
-		if err != nil {
-			return nil, err
+		if len(bs) < 40 {
+			return nil, nil, ErrInvalidSliceLength
 		}
-
-		dgram.Samples = append(dgram.Samples, sample)
+	case 0: // UNKNOWN
+		ipLen = 0
+	default:
+		return nil, nil, ErrUnsupportedIpVersion
 	}
-
-	return dgram, nil
+	if ipLen > 0 {
+		dgram.IpAddress = bs[8 : 8+ipLen]
+	}
+	dgram.SubAgentId = binary.BigEndian.Uint32(bs[8+ipLen:])
+	dgram.SequenceNumber = binary.BigEndian.Uint32(bs[12+ipLen:])
+	dgram.Uptime = binary.BigEndian.Uint32(bs[16+ipLen:])
+	dgram.NumSamples = binary.BigEndian.Uint32(bs[20+ipLen:])
+	return bs[24+ipLen:], dgram, nil
 }

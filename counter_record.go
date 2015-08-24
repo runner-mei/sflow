@@ -2,7 +2,6 @@ package sflow
 
 import (
 	"encoding/binary"
-	"io"
 	"unsafe"
 )
 
@@ -174,31 +173,28 @@ type HostNetCounters struct {
 }
 
 var (
-	genericInterfaceCountersSize = uint32(unsafe.Sizeof(GenericInterfaceCounters{}))
-	ethernetCountersSize         = uint32(unsafe.Sizeof(EthernetCounters{}))
-	tokenRingCountersSize        = uint32(unsafe.Sizeof(TokenRingCounters{}))
-	vgCountersSize               = uint32(unsafe.Sizeof(VgCounters{}))
-	vlanCountersSize             = uint32(unsafe.Sizeof(VlanCounters{}))
-	processorCountersSize        = uint32(unsafe.Sizeof(ProcessorCounters{}))
-	hostCPUCountersSize          = uint32(unsafe.Sizeof(HostCPUCounters{}))
-	hostMemoryCountersSize       = uint32(unsafe.Sizeof(HostMemoryCounters{}))
-	hostDiskCountersSize         = uint32(unsafe.Sizeof(HostDiskCounters{}))
-	hostNetCountersSize          = uint32(unsafe.Sizeof(HostNetCounters{}))
+	genericInterfaceCountersSize = int(unsafe.Sizeof(GenericInterfaceCounters{}))
+	ethernetCountersSize         = int(unsafe.Sizeof(EthernetCounters{}))
+	tokenRingCountersSize        = int(unsafe.Sizeof(TokenRingCounters{}))
+	vgCountersSize               = int(unsafe.Sizeof(VgCounters{}))
+	vlanCountersSize             = int(unsafe.Sizeof(VlanCounters{}))
+	processorCountersSize        = int(unsafe.Sizeof(ProcessorCounters{}))
+	hostCPUCountersSize          = int(unsafe.Sizeof(HostCPUCounters{}))
+	hostMemoryCountersSize       = int(unsafe.Sizeof(HostMemoryCounters{}))
+	hostDiskCountersSize         = int(unsafe.Sizeof(HostDiskCounters{}))
+	hostNetCountersSize          = int(unsafe.Sizeof(HostNetCounters{}))
 )
 
 // RecordType returns the type of counter record.
-func (c GenericInterfaceCounters) RecordType() int {
+func (c *GenericInterfaceCounters) RecordType() int {
 	return TypeGenericInterfaceCountersRecord
 }
 
-func decodeGenericInterfaceCountersRecord(r io.Reader, length uint32) (GenericInterfaceCounters, error) {
-	c := GenericInterfaceCounters{}
-	b := make([]byte, int(length))
-	n, _ := r.Read(b)
-	if n != int(length) {
-		return c, ErrDecodingRecord
+func decodeGenericInterfaceCountersRecord(bs []byte) ([]byte, *GenericInterfaceCounters, error) {
+	if len(bs) < genericInterfaceCountersSize {
+		return nil, nil, ErrDecodingRecord
 	}
-
+	c := &GenericInterfaceCounters{}
 	fields := []interface{}{
 		&c.Index,
 		&c.Type,
@@ -221,39 +217,37 @@ func decodeGenericInterfaceCountersRecord(r io.Reader, length uint32) (GenericIn
 		&c.PromiscuousMode,
 	}
 
-	return c, readFields(b, fields)
+	return bs[genericInterfaceCountersSize:], c, readFields(bs[:genericInterfaceCountersSize], fields)
 }
 
-func (c GenericInterfaceCounters) encode(w io.Writer) error {
-	var err error
+// func (c GenericInterfaceCounters) encode(w io.Writer) error {
+// 	var err error
 
-	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, genericInterfaceCountersSize)
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, genericInterfaceCountersSize)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, c)
-	return err
-}
+// 	err = binary.Write(w, binary.BigEndian, c)
+// 	return err
+// }
 
 // RecordType returns the type of counter record.
-func (c EthernetCounters) RecordType() int {
+func (c *EthernetCounters) RecordType() int {
 	return TypeEthernetCountersRecord
 }
 
-func decodeEthernetCountersRecord(r io.Reader, length uint32) (EthernetCounters, error) {
-	c := EthernetCounters{}
-	b := make([]byte, int(length))
-	n, _ := r.Read(b)
-	if n != int(length) {
-		return c, ErrDecodingRecord
+func decodeEthernetCountersRecord(bs []byte) ([]byte, *EthernetCounters, error) {
+	if len(bs) < ethernetCountersSize {
+		return nil, nil, ErrDecodingRecord
 	}
 
+	c := &EthernetCounters{}
 	fields := []interface{}{
 		&c.AlignmentErrors,
 		&c.FCSErrors,
@@ -270,39 +264,37 @@ func decodeEthernetCountersRecord(r io.Reader, length uint32) (EthernetCounters,
 		&c.SymbolErrors,
 	}
 
-	return c, readFields(b, fields)
+	return bs[ethernetCountersSize:], c, readFields(bs[:ethernetCountersSize], fields)
 }
 
-func (c EthernetCounters) encode(w io.Writer) error {
-	var err error
+// func (c EthernetCounters) encode(w io.Writer) error {
+// 	var err error
 
-	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, ethernetCountersSize)
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, ethernetCountersSize)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, c)
-	return err
-}
+// 	err = binary.Write(w, binary.BigEndian, c)
+// 	return err
+// }
 
 // RecordType returns the type of counter record.
-func (c TokenRingCounters) RecordType() int {
+func (c *TokenRingCounters) RecordType() int {
 	return TypeTokenRingCountersRecord
 }
 
-func decodeTokenRingCountersRecord(r io.Reader, length uint32) (TokenRingCounters, error) {
-	c := TokenRingCounters{}
-	b := make([]byte, int(length))
-	n, _ := r.Read(b)
-	if n != int(length) {
-		return c, ErrDecodingRecord
+func decodeTokenRingCountersRecord(bs []byte) ([]byte, *TokenRingCounters, error) {
+	if len(bs) < tokenRingCountersSize {
+		return nil, nil, ErrDecodingRecord
 	}
 
+	c := &TokenRingCounters{}
 	fields := []interface{}{
 		&c.LineErrors,
 		&c.BurstErrors,
@@ -324,39 +316,37 @@ func decodeTokenRingCountersRecord(r io.Reader, length uint32) (TokenRingCounter
 		&c.FreqErrors,
 	}
 
-	return c, readFields(b, fields)
+	return bs[tokenRingCountersSize:], c, readFields(bs[:tokenRingCountersSize], fields)
 }
 
-func (c TokenRingCounters) encode(w io.Writer) error {
-	var err error
+// func (c TokenRingCounters) encode(w io.Writer) error {
+// 	var err error
 
-	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, tokenRingCountersSize)
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, tokenRingCountersSize)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, c)
-	return err
-}
+// 	err = binary.Write(w, binary.BigEndian, c)
+// 	return err
+// }
 
 // RecordType returns the type of counter record.
-func (c VgCounters) RecordType() int {
+func (c *VgCounters) RecordType() int {
 	return TypeVgCountersRecord
 }
 
-func decodeVgCountersRecord(r io.Reader, length uint32) (VgCounters, error) {
-	c := VgCounters{}
-	b := make([]byte, int(length))
-	n, _ := r.Read(b)
-	if n != int(length) {
-		return c, ErrDecodingRecord
+func decodeVgCountersRecord(bs []byte) ([]byte, *VgCounters, error) {
+	if len(bs) < vgCountersSize {
+		return nil, nil, ErrDecodingRecord
 	}
 
+	c := &VgCounters{}
 	fields := []interface{}{
 		&c.InHighPriorityFrames,
 		&c.InHighPriorityOctets,
@@ -374,39 +364,37 @@ func decodeVgCountersRecord(r io.Reader, length uint32) (VgCounters, error) {
 		&c.HCOutHighPriorityOctets,
 	}
 
-	return c, readFields(b, fields)
+	return bs[vgCountersSize:], c, readFields(bs[:vgCountersSize], fields)
 }
 
-func (c VgCounters) encode(w io.Writer) error {
-	var err error
+// func (c VgCounters) encode(w io.Writer) error {
+// 	var err error
 
-	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, vgCountersSize)
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, vgCountersSize)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, c)
-	return err
-}
+// 	err = binary.Write(w, binary.BigEndian, c)
+// 	return err
+// }
 
 // RecordType returns the type of counter record.
-func (c VlanCounters) RecordType() int {
+func (c *VlanCounters) RecordType() int {
 	return TypeVlanCountersRecord
 }
 
-func decodeVlanCountersRecord(r io.Reader, length uint32) (VlanCounters, error) {
-	c := VlanCounters{}
-	b := make([]byte, int(length))
-	n, _ := r.Read(b)
-	if n != int(length) {
-		return c, ErrDecodingRecord
+func decodeVlanCountersRecord(bs []byte) ([]byte, *VlanCounters, error) {
+	if len(bs) < vlanCountersSize {
+		return nil, nil, ErrDecodingRecord
 	}
 
+	c := &VlanCounters{}
 	fields := []interface{}{
 		&c.ID,
 		&c.Octets,
@@ -416,39 +404,37 @@ func decodeVlanCountersRecord(r io.Reader, length uint32) (VlanCounters, error) 
 		&c.Discards,
 	}
 
-	return c, readFields(b, fields)
+	return bs[vlanCountersSize:], c, readFields(bs[:vlanCountersSize], fields)
 }
 
-func (c VlanCounters) encode(w io.Writer) error {
-	var err error
+// func (c VlanCounters) encode(w io.Writer) error {
+// 	var err error
 
-	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, vlanCountersSize)
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, vlanCountersSize)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, c)
-	return err
-}
+// 	err = binary.Write(w, binary.BigEndian, c)
+// 	return err
+// }
 
 // RecordType returns the type of counter record.
-func (c ProcessorCounters) RecordType() int {
+func (c *ProcessorCounters) RecordType() int {
 	return TypeProcessorCountersRecord
 }
 
-func decodeProcessorCountersRecord(r io.Reader, length uint32) (ProcessorCounters, error) {
-	c := ProcessorCounters{}
-	b := make([]byte, int(length))
-	n, _ := r.Read(b)
-	if n != int(length) {
-		return c, ErrDecodingRecord
+func decodeProcessorCountersRecord(bs []byte) ([]byte, *ProcessorCounters, error) {
+	if len(bs) < processorCountersSize {
+		return nil, nil, ErrDecodingRecord
 	}
 
+	c := &ProcessorCounters{}
 	fields := []interface{}{
 		&c.CPU5s,
 		&c.CPU1m,
@@ -457,39 +443,37 @@ func decodeProcessorCountersRecord(r io.Reader, length uint32) (ProcessorCounter
 		&c.FreeMemory,
 	}
 
-	return c, readFields(b, fields)
+	return bs[processorCountersSize:], c, readFields(bs[:processorCountersSize], fields)
 }
 
-func (c ProcessorCounters) encode(w io.Writer) error {
-	var err error
+// func (c ProcessorCounters) encode(w io.Writer) error {
+// 	var err error
 
-	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, processorCountersSize)
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, processorCountersSize)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, c)
-	return err
-}
+// 	err = binary.Write(w, binary.BigEndian, c)
+// 	return err
+// }
 
 // RecordType returns the type of counter record.
-func (c HostCPUCounters) RecordType() int {
+func (c *HostCPUCounters) RecordType() int {
 	return TypeHostCPUCountersRecord
 }
 
-func decodeHostCPUCountersRecord(r io.Reader, length uint32) (HostCPUCounters, error) {
-	c := HostCPUCounters{}
-	b := make([]byte, int(length))
-	n, _ := r.Read(b)
-	if n != int(length) {
-		return c, ErrDecodingRecord
+func decodeHostCPUCountersRecord(bs []byte) ([]byte, *HostCPUCounters, error) {
+	if len(bs) < hostCPUCountersSize {
+		return nil, nil, ErrDecodingRecord
 	}
 
+	c := &HostCPUCounters{}
 	fields := []interface{}{
 		&c.Load1m,
 		&c.Load5m,
@@ -513,39 +497,37 @@ func decodeHostCPUCountersRecord(r io.Reader, length uint32) (HostCPUCounters, e
 		&c.CPUGuestNice,
 	}
 
-	return c, readFields(b, fields)
+	return bs[hostCPUCountersSize:], c, readFields(bs[:hostCPUCountersSize], fields)
 }
 
-func (c HostCPUCounters) encode(w io.Writer) error {
-	var err error
+// func (c HostCPUCounters) encode(w io.Writer) error {
+// 	var err error
 
-	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, hostCPUCountersSize)
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, hostCPUCountersSize)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, c)
-	return err
-}
+// 	err = binary.Write(w, binary.BigEndian, c)
+// 	return err
+// }
 
 // RecordType returns the type of counter record.
-func (c HostMemoryCounters) RecordType() int {
+func (c *HostMemoryCounters) RecordType() int {
 	return TypeHostMemoryCountersRecord
 }
 
-func decodeHostMemoryCountersRecord(r io.Reader, length uint32) (HostMemoryCounters, error) {
-	c := HostMemoryCounters{}
-	b := make([]byte, int(length))
-	n, _ := r.Read(b)
-	if n != int(length) {
-		return c, ErrDecodingRecord
+func decodeHostMemoryCountersRecord(bs []byte) ([]byte, *HostMemoryCounters, error) {
+	if len(bs) < hostMemoryCountersSize {
+		return nil, nil, ErrDecodingRecord
 	}
 
+	c := &HostMemoryCounters{}
 	fields := []interface{}{
 		&c.Total,
 		&c.Free,
@@ -560,39 +542,37 @@ func decodeHostMemoryCountersRecord(r io.Reader, length uint32) (HostMemoryCount
 		&c.SwapOut,
 	}
 
-	return c, readFields(b, fields)
+	return bs[hostMemoryCountersSize:], c, readFields(bs[:hostMemoryCountersSize], fields)
 }
 
-func (c HostMemoryCounters) encode(w io.Writer) error {
-	var err error
+// func (c HostMemoryCounters) encode(w io.Writer) error {
+// 	var err error
 
-	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, hostMemoryCountersSize)
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, hostMemoryCountersSize)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, c)
-	return err
-}
+// 	err = binary.Write(w, binary.BigEndian, c)
+// 	return err
+// }
 
 // RecordType returns the type of counter record.
-func (c HostDiskCounters) RecordType() int {
+func (c *HostDiskCounters) RecordType() int {
 	return TypeHostDiskCountersRecord
 }
 
-func decodeHostDiskCountersRecord(r io.Reader, length uint32) (HostDiskCounters, error) {
-	c := HostDiskCounters{}
-	b := make([]byte, int(length))
-	n, _ := r.Read(b)
-	if n != int(length) {
-		return c, ErrDecodingRecord
+func decodeHostDiskCountersRecord(bs []byte) ([]byte, *HostDiskCounters, error) {
+	if len(bs) < hostDiskCountersSize {
+		return nil, nil, ErrDecodingRecord
 	}
 
+	c := &HostDiskCounters{}
 	fields := []interface{}{
 		&c.Total,
 		&c.Free,
@@ -605,38 +585,37 @@ func decodeHostDiskCountersRecord(r io.Reader, length uint32) (HostDiskCounters,
 		&c.WriteTime,
 	}
 
-	return c, readFields(b, fields)
+	return bs[hostDiskCountersSize:], c, readFields(bs[:hostDiskCountersSize], fields)
 }
 
-func (c HostDiskCounters) encode(w io.Writer) error {
-	var err error
+// func (c HostDiskCounters) encode(w io.Writer) error {
+// 	var err error
 
-	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, hostDiskCountersSize)
-	if err != nil {
-		return err
-	}
+// 	err = binary.Write(w, binary.BigEndian, hostDiskCountersSize)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = binary.Write(w, binary.BigEndian, c)
-	return err
-}
+// 	err = binary.Write(w, binary.BigEndian, c)
+// 	return err
+// }
 
 // RecordType returns the type of counter record.
-func (c HostNetCounters) RecordType() int {
+func (c *HostNetCounters) RecordType() int {
 	return TypeHostNetCountersRecord
 }
 
-func decodeHostNetCountersRecord(r io.Reader, length uint32) (HostNetCounters, error) {
-	c := HostNetCounters{}
-	b := make([]byte, int(length))
-	n, _ := r.Read(b)
-	if n != int(length) {
-		return c, ErrDecodingRecord
+func decodeHostNetCountersRecord(bs []byte) ([]byte, *HostNetCounters, error) {
+	if len(bs) < hostNetCountersSize {
+		return nil, nil, ErrDecodingRecord
 	}
+
+	c := &HostNetCounters{}
 
 	fields := []interface{}{
 		&c.BytesIn,
@@ -649,22 +628,69 @@ func decodeHostNetCountersRecord(r io.Reader, length uint32) (HostNetCounters, e
 		&c.DropsOut,
 	}
 
-	return c, readFields(b, fields)
+	return bs[hostNetCountersSize:], c, readFields(bs[:hostNetCountersSize], fields)
 }
 
-func (c HostNetCounters) encode(w io.Writer) error {
-	var err error
+// func (c HostNetCounters) encode(w io.Writer) error {
+// 	var err error
 
-	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
-	if err != nil {
-		return err
+// 	err = binary.Write(w, binary.BigEndian, uint32(c.RecordType()))
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	err = binary.Write(w, binary.BigEndian, hostNetCountersSize)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	err = binary.Write(w, binary.BigEndian, c)
+// 	return err
+// }
+
+func decodeCounterRecord(bs []byte) ([]byte, Record, error) {
+	if len(bs) < 8 {
+		return nil, nil, ErrInvalidSliceLength
 	}
 
-	err = binary.Write(w, binary.BigEndian, hostNetCountersSize)
-	if err != nil {
-		return err
+	format := binary.BigEndian.Uint32(bs)
+	length := binary.BigEndian.Uint32(bs[4:])
+	if len(bs) < 8+int(length) {
+		return nil, nil, ErrInvalidSliceLength
 	}
 
-	err = binary.Write(w, binary.BigEndian, c)
-	return err
+	switch format {
+	case TypeGenericInterfaceCountersRecord:
+		_, s, e := decodeGenericInterfaceCountersRecord(bs[8 : 8+length])
+		return bs[8+length:], s, e
+	case TypeEthernetCountersRecord:
+		_, s, e := decodeEthernetCountersRecord(bs[8 : 8+length])
+		return bs[8+length:], s, e
+	case TypeTokenRingCountersRecord:
+		_, s, e := decodeTokenRingCountersRecord(bs[8 : 8+length])
+		return bs[8+length:], s, e
+	case TypeVgCountersRecord:
+		_, s, e := decodeVgCountersRecord(bs[8 : 8+length])
+		return bs[8+length:], s, e
+	case TypeVlanCountersRecord:
+		_, s, e := decodeVlanCountersRecord(bs[8 : 8+length])
+		return bs[8+length:], s, e
+	case TypeProcessorCountersRecord:
+		_, s, e := decodeProcessorCountersRecord(bs[8 : 8+length])
+		return bs[8+length:], s, e
+	case TypeHostCPUCountersRecord:
+		_, s, e := decodeHostCPUCountersRecord(bs[8 : 8+length])
+		return bs[8+length:], s, e
+	case TypeHostMemoryCountersRecord:
+		_, s, e := decodeHostMemoryCountersRecord(bs[8 : 8+length])
+		return bs[8+length:], s, e
+	case TypeHostDiskCountersRecord:
+		_, s, e := decodeHostDiskCountersRecord(bs[8 : 8+length])
+		return bs[8+length:], s, e
+	case TypeHostNetCountersRecord:
+		_, s, e := decodeHostNetCountersRecord(bs[8 : 8+length])
+		return bs[8+length:], s, e
+	default:
+		return bs[8+length:], nil, nil
+	}
 }

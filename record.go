@@ -1,9 +1,6 @@
 package sflow
 
-import (
-	"errors"
-	"io"
-)
+import "errors"
 
 var (
 	ErrEncodingRecord = errors.New("sflow: failed to encode record")
@@ -12,5 +9,5 @@ var (
 
 type Record interface {
 	RecordType() int
-	encode(w io.Writer) error
+	//encode(w io.Writer) error
 }
