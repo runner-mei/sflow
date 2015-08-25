@@ -43,12 +43,12 @@ func TestEncodeDecodeGenericInterfaceCountersRecord(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	decoded, err := decodeGenericInterfaceCountersRecord(b, uint32(b.Len()))
+	_, decoded, err := decodeGenericInterfaceCountersRecord(b.Bytes())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if decoded != rec {
+	if *decoded != rec {
 		t.Errorf("expected\n%+#v\n, got\n%+#v", rec, decoded)
 	}
 }
@@ -94,12 +94,12 @@ func TestEncodeDecodeHostCPUCountersRecord(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	decoded, err := decodeHostCPUCountersRecord(b, uint32(b.Len()))
+	_, decoded, err := decodeHostCPUCountersRecord(b.Bytes())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if decoded != rec {
+	if *decoded != rec {
 		t.Errorf("expected\n%+#v\n, got\n%+#v", rec, decoded)
 	}
 }

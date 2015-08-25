@@ -7,7 +7,7 @@ import (
 )
 
 func TestEncodeDecodeRawPacketFlowRecord(t *testing.T) {
-	rec := RawPacketFlow{
+	rec := RawPacketFlowRecord{
 		Protocol:    1,
 		FrameLength: 318,
 		Stripped:    4,
@@ -49,12 +49,12 @@ func TestEncodeDecodeRawPacketFlowRecord(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	decoded, err := decodeRawPacketFlow(b)
+	_, decoded, err := DecodeRawPacketFlowRecord(b.Bytes())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !reflect.DeepEqual(rec, decoded) {
+	if !reflect.DeepEqual(rec, *decoded) {
 		t.Errorf("expected\n%+#v\n, got\n%+#v", rec, decoded)
 	}
 }

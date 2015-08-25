@@ -1,6 +1,7 @@
 package sflow
 
 import (
+	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -11,13 +12,18 @@ func BenchmarkFlow1Sample(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	d := NewDecoder(f)
-
-	for i := 0; i < b.N; i++ {
-		d.Decode()
+	bs, err := ioutil.ReadAll(f)
+	if err != nil {
+		b.Fatal(err)
 	}
 
-	f.Close()
+	//d := NewDecoder(f)
+
+	for i := 0; i < b.N; i++ {
+		DecodeDatagram(bs)
+	}
+
+	//f.Close()
 }
 
 func BenchmarkCounterSample(b *testing.B) {
@@ -26,11 +32,16 @@ func BenchmarkCounterSample(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	d := NewDecoder(f)
-
-	for i := 0; i < b.N; i++ {
-		d.Decode()
+	bs, err := ioutil.ReadAll(f)
+	if err != nil {
+		b.Fatal(err)
 	}
 
-	f.Close()
+	//d := NewDecoder(f)
+
+	for i := 0; i < b.N; i++ {
+		DecodeDatagram(bs)
+	}
+
+	//f.Close()
 }

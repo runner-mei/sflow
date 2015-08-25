@@ -1,6 +1,9 @@
 package sflow
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"io"
+)
 
 // RawPacketFlow is a raw Ethernet header flow record.
 type RawPacketFlowRecord struct {
@@ -41,54 +44,54 @@ func DecodeRawPacketFlowRecord(bs []byte) ([]byte, *RawPacketFlowRecord, error) 
 	return bs[16+f.HeaderSize:], f, nil
 }
 
-// func (f RawPacketFlowRecord) encode(w io.Writer) error {
-// 	var err error
+func (f RawPacketFlowRecord) encode(w io.Writer) error {
+	var err error
 
-// 	err = binary.Write(w, binary.BigEndian, uint32(f.RecordType()))
-// 	if err != nil {
-// 		return err
-// 	}
+	err = binary.Write(w, binary.BigEndian, uint32(f.RecordType()))
+	if err != nil {
+		return err
+	}
 
-// 	// We need to calculate encoded size of the record.
-// 	encodedRecordLength := uint32(4 * 4) // 4 32-bit records
+	// We need to calculate encoded size of the record.
+	encodedRecordLength := uint32(4 * 4) // 4 32-bit records
 
-// 	// Add the length of the header padded to a multiple of 4 bytes.
-// 	padding := (4 - f.HeaderSize) % 4
-// 	if padding < 0 {
-// 		padding += 4
-// 	}
+	// Add the length of the header padded to a multiple of 4 bytes.
+	padding := (4 - f.HeaderSize) % 4
+	if padding < 0 {
+		padding += 4
+	}
 
-// 	encodedRecordLength += f.HeaderSize + padding
+	encodedRecordLength += f.HeaderSize + padding
 
-// 	err = binary.Write(w, binary.BigEndian, encodedRecordLength)
-// 	if err != nil {
-// 		return err
-// 	}
+	err = binary.Write(w, binary.BigEndian, encodedRecordLength)
+	if err != nil {
+		return err
+	}
 
-// 	err = binary.Write(w, binary.BigEndian, f.Protocol)
-// 	if err != nil {
-// 		return err
-// 	}
+	err = binary.Write(w, binary.BigEndian, f.Protocol)
+	if err != nil {
+		return err
+	}
 
-// 	err = binary.Write(w, binary.BigEndian, f.FrameLength)
-// 	if err != nil {
-// 		return err
-// 	}
+	err = binary.Write(w, binary.BigEndian, f.FrameLength)
+	if err != nil {
+		return err
+	}
 
-// 	err = binary.Write(w, binary.BigEndian, f.Stripped)
-// 	if err != nil {
-// 		return err
-// 	}
+	err = binary.Write(w, binary.BigEndian, f.Stripped)
+	if err != nil {
+		return err
+	}
 
-// 	err = binary.Write(w, binary.BigEndian, f.HeaderSize)
-// 	if err != nil {
-// 		return err
-// 	}
+	err = binary.Write(w, binary.BigEndian, f.HeaderSize)
+	if err != nil {
+		return err
+	}
 
-// 	_, err = w.Write(append(f.Header, make([]byte, padding)...))
+	_, err = w.Write(append(f.Header, make([]byte, padding)...))
 
-// 	return err
-// }
+	return err
+}
 
 // ExtendedSwitchFlow is an extended switch flow record.
 // type ExtendedSwitchFlow struct {
@@ -217,7 +220,7 @@ func DecodeIpv6FlowRecord(bs []byte) ([]byte, *Ipv6FlowRecord, error) {
 	return bs[56:], res, nil
 }
 
-func decodeFlowRecord(bs []byte) ([]byte, Record, error) {
+func DecodeFlowRecord(bs []byte) ([]byte, Record, error) {
 	if len(bs) < 8 {
 		return nil, nil, ErrInvalidSliceLength
 	}

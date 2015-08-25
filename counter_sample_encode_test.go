@@ -33,7 +33,7 @@ func TestDecodeEncodeAndDecodeCounterSample(t *testing.T) {
 		t.Fatalf("expected 1 sample, got %d", len(dgram.Samples))
 	}
 
-	next, s, err := DecodeSample(next)
+	next, record_next, s, err := DecodeSample(next)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +69,7 @@ func TestDecodeEncodeAndDecodeCounterSample(t *testing.T) {
 		t.Fatalf("expected 2 records, got %d", sample.NumRecords)
 	}
 
-	next, record, err := decodeCounterRecord(next)
+	record_next, record, err := DecodeCounterRecord(record_next)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,16 +80,16 @@ func TestDecodeEncodeAndDecodeCounterSample(t *testing.T) {
 	}
 
 	expectedEthCountersRec := EthernetCounters{}
-	if ethCounters != expectedEthCountersRec {
+	if *ethCounters != expectedEthCountersRec {
 		t.Errorf("expected\n%#v, got\n%#v", expectedEthCountersRec, ethCounters)
 	}
 
-	next, record, err = decodeCounterRecord(next)
+	record_next, record, err = DecodeCounterRecord(record_next)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	genericInterfaceCounters, ok := record.(GenericInterfaceCounters)
+	genericInterfaceCounters, ok := record.(*GenericInterfaceCounters)
 	if !ok {
 		t.Fatalf("expected a GenericInterfaceCounters record, got %T", record)
 	}
@@ -116,7 +116,7 @@ func TestDecodeEncodeAndDecodeCounterSample(t *testing.T) {
 		PromiscuousMode:     1,
 	}
 
-	if genericInterfaceCounters != expectedGenericInterfaceCounters {
+	if *genericInterfaceCounters != expectedGenericInterfaceCounters {
 		t.Errorf("expected\n%#v, got\n%#v", expectedGenericInterfaceCounters, genericInterfaceCounters)
 	}
 }
